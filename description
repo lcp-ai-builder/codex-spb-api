@@ -1,0 +1,10 @@
+需求:创建一个spring boot
+.servlet容器使用undertown
+.spring版本使用6的最新版,我本地的java版本是17
+.spring mvc使用reactor
+.spring boot的配置文件使用properties格式
+.使用maven做项目管理
+.使用mybatis-plus作为持久层框架
+.使用mysql作为数据库
+.创建一个简单的用户实体类User，包含id、name、email字段
+.junit使用5版本

@@ -1,0 +1,12 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "mvn clean package",
+            "type": "shell",
+            "command": "mvn clean package",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

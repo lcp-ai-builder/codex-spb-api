@@ -1,0 +1,15 @@
+{
+  "cSpell.enabled": false,
+  "git.enableCommitSigning": true,
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.configuration.runtimes": [
+    {
+      "default": true,
+      "name": "JavaSE-21",
+      "path": "/usr/lib/jvm/java-21-amazon-corretto"
+    }
+  ],
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.jdt.ls.java.home": "/usr/lib/jvm/java-21-amazon-corretto",
+  "workbench.colorTheme": "Atom One Dark"
+}
