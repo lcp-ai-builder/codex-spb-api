@@ -18,12 +18,14 @@ public class UserServiceImpl extends AbstractMapperService<UserMapper> implement
 
   @Override
   public Flux<User> findAll() {
+    // MyBatis 查询是阻塞的，转到弹性线程池
     return Flux.defer(() -> Flux.fromIterable(mapper.selectList(null)))
         .subscribeOn(Schedulers.boundedElastic());
   }
 
   @Override
   public Mono<User> save(User user) {
+    // 插入后返回同一个实体
     return fromBlocking(() -> {
       mapper.insert(user);
       return user;

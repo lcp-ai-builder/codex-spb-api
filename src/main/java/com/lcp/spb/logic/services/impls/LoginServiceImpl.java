@@ -18,6 +18,7 @@ public class LoginServiceImpl extends AbstractMapperService<LoginMapper> impleme
 
   @Override
   public Mono<Login> create(Login login) {
+    // 直接写入登录表，返回写入的实体
     return fromBlocking(() -> {
       mapper.insert(login);
       return login;
@@ -26,17 +27,22 @@ public class LoginServiceImpl extends AbstractMapperService<LoginMapper> impleme
 
   @Override
   public Mono<Integer> insertLogin(Login login) {
+    // 仅返回受影响行数，便于集成校验
     return fromBlocking(() -> mapper.insert(login));
   }
 
   @Override
   public Mono<Login> authenticate(String userId, String hashedPassword) {
+    // 按 userId 查询并比对已计算好的 SHA-256 哈希
+    // selectById 是阻塞调用：放到弹性线程池，再根据查到的数据决定发射或空
     return Mono.fromCallable(() -> mapper.selectById(userId))
         .subscribeOn(Schedulers.boundedElastic())
         .flatMap(login -> {
+          // 未查到用户 -> 完整的空序列
           if (login == null) {
             return Mono.empty();
           }
+          // 口令哈希匹配 -> 返回用户，否则返回空
           if (Objects.equals(login.getPassword(), hashedPassword)) {
             return Mono.just(login);
           }

@@ -29,6 +29,7 @@ class LoginServiceIntegrationTest {
   @Test
   void insertLoginPersistsToDatabase() {
 
+    // 批量写入真实数据库，便于人工核对 insertLogin 行为
     IntStream.range(0, 10).forEach(i -> {
       String userId = "zhang3-" + randomAlphaNumeric(10);
       String hashedPassword = sha256(randomAlphaNumeric(16));
