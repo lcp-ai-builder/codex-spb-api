@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.lcp.spb.bean.User;
 import com.lcp.spb.logic.dao.UserMapper;
+import com.lcp.spb.logic.services.impls.UserServiceImpl;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,11 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserServiceImplTest {
 
   @Mock private UserMapper userMapper;
 
-  @InjectMocks private UserService userService;
+  @InjectMocks private UserServiceImpl userService;
 
   @Test
   void findAllEmitsUsers() {

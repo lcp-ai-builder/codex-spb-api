@@ -2,6 +2,7 @@ package com.lcp.spb.controller;
 
 import com.lcp.spb.bean.User;
 import com.lcp.spb.logic.services.UserService;
+import com.lcp.spb.logic.services.impls.UserServiceImpl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,7 +17,7 @@ public class UserController {
 
   private final UserService userService;
 
-  public UserController(UserService userService) {
+  public UserController(UserServiceImpl userService) {
     this.userService = userService;
   }
 

@@ -7,13 +7,13 @@ import com.baomidou.mybatisplus.annotation.TableName;
 @TableName("login")
 public class Login {
 
-  @TableId(value = "user_id", type = IdType.INPUT) private Long userId;
+  @TableId(value = "user_id", type = IdType.INPUT) private String userId;
 
   private String password;
 
-  public Long getUserId() { return userId; }
+  public String getUserId() { return userId; }
 
-  public void setUserId(Long userId) { this.userId = userId; }
+  public void setUserId(String userId) { this.userId = userId; }
 
   public String getPassword() { return password; }
 
