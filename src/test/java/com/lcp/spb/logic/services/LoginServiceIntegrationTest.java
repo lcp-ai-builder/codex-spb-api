@@ -1,10 +1,6 @@
 package com.lcp.spb.logic.services;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import com.lcp.spb.bean.Login;
-import com.lcp.spb.logic.dao.LoginMapper;
 import com.lcp.spb.logic.services.impls.LoginServiceImpl;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -18,13 +14,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class LoginServiceIntegrationTest {
 
-  private static final String ALLOWED =
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  private static final String ALLOWED = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   private static final SecureRandom RANDOM = new SecureRandom();
 
-  @Autowired private LoginServiceImpl loginService;
-
-  @Autowired private LoginMapper loginMapper;
+  @Autowired
+  private LoginServiceImpl loginService;
 
   @Test
   void insertLoginPersistsToDatabase() {
@@ -40,6 +34,22 @@ class LoginServiceIntegrationTest {
 
       loginService.insertLogin(login).block();
     });
+
+    // loginMapper.deleteById(userId);
+  }
+
+  @Test
+  void insertAdminToDatabase() {
+
+    // 批量写入真实数据库，便于人工核对 insertLogin 行为
+    String userId = "admin";
+    String hashedPassword = sha256("aaaaaa");
+
+    Login login = new Login();
+    login.setUserId(userId);
+    login.setPassword(hashedPassword);
+
+    loginService.insertLogin(login).block();
 
     // loginMapper.deleteById(userId);
   }

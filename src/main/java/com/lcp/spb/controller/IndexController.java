@@ -1,16 +1,12 @@
 package com.lcp.spb.controller;
 
 import com.lcp.spb.bean.response.IndexResponse;
-import org.slf4j.Logger;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController
-public class IndexController {
-
-  protected Logger logger =
-      org.slf4j.LoggerFactory.getLogger(IndexController.class);
+public class IndexController extends AbstractController {
 
   @GetMapping("/index")
   public Mono<IndexResponse> index() {
