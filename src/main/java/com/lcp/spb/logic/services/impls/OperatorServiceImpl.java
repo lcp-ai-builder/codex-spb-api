@@ -13,7 +13,7 @@ public class OperatorServiceImpl extends AbstractMapperService implements Operat
 
   @Override
   public Mono<PageResponse<Operator>> findPage(long page, long pageSize) {
-    PageBounds bounds = normalizePage(page, pageSize);
+    var bounds = normalizePage(page, pageSize);
 
     return fromBlocking(
         () -> {

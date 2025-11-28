@@ -13,7 +13,7 @@ public class RoleServiceImpl extends AbstractMapperService implements RoleServic
 
   @Override
   public Mono<PageResponse<Role>> findPage(long page, long pageSize) {
-    PageBounds bounds = normalizePage(page, pageSize);
+    var bounds = normalizePage(page, pageSize);
 
     return fromBlocking(
         () -> {

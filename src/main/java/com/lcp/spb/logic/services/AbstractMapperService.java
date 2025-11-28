@@ -23,9 +23,9 @@ public abstract class AbstractMapperService extends BaseService {
     protected UserMapper userMapper;
 
     protected PageBounds normalizePage(long page, long pageSize) {
-        long safePage = Math.max(page, NumberUtils.LONG_ONE);
-        long safePageSize = Math.max(pageSize, NumberUtils.LONG_ONE);
-        long offset = (safePage - NumberUtils.LONG_ONE) * safePageSize;
+        var safePage = Math.max(page, NumberUtils.LONG_ONE);
+        var safePageSize = Math.max(pageSize, NumberUtils.LONG_ONE);
+        var offset = (safePage - NumberUtils.LONG_ONE) * safePageSize;
         return new PageBounds(safePage, safePageSize, offset);
     }
 

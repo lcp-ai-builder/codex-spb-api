@@ -3,7 +3,6 @@ package com.lcp.spb.controller;
 import com.lcp.spb.bean.Role;
 import com.lcp.spb.bean.response.PageResponse;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
