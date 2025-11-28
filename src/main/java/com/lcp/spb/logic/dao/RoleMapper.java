@@ -13,5 +13,5 @@ public interface RoleMapper extends BaseMapper<Role> {
 
   long countAll();
 
-  void updateStatusById(@Param("roleId") Long roleId, @Param("status") String status);
+  int updateStatusById(@Param("roleId") Long roleId, @Param("status") String status);
 }

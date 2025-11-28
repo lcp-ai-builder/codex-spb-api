@@ -2,6 +2,8 @@ package com.lcp.spb.controller;
 
 import com.lcp.spb.bean.request.LoginRequest;
 import com.lcp.spb.bean.response.LoginResponse;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +18,8 @@ public class LoginController extends AbstractController {
   public Mono<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
     return loginService
         .authenticate(loginRequest.getUserId(), loginRequest.getPassword())
-        .map(login -> new LoginResponse(true, "Login successful"))
-        .defaultIfEmpty(new LoginResponse(false, "Invalid userId or password"));
+        .map(login -> new LoginResponse(true, "Login successful", sha256(loginRequest.getUserId())))
+        .defaultIfEmpty(new LoginResponse(false, "Invalid userId or password", StringUtils.EMPTY));
   }
+
 }

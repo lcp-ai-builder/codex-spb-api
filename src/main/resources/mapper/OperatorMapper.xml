@@ -27,4 +27,9 @@
   <select id="countAll" resultType="long">
     select count(id) from operators
   </select>
+  <insert id="insertNewOperator" parameterType="com.lcp.spb.bean.Operator" useGeneratedKeys="true"
+    keyProperty="id" keyColumn="id">
+    insert into operators (operator_no, name, login_name, phone, role_id)
+    values (#{operatorNo}, #{name}, #{loginName}, #{phone}, #{roleId})
+  </insert>
 </mapper>

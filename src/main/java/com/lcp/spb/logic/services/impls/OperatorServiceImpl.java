@@ -28,7 +28,7 @@ public class OperatorServiceImpl extends AbstractMapperService implements Operat
     return fromBlocking(
         () -> {
           operator.setId(null);
-          operatorMapper.insert(operator);
+          operatorMapper.insertNewOperator(operator);
           return operatorMapper.selectById(operator.getId());
         });
   }

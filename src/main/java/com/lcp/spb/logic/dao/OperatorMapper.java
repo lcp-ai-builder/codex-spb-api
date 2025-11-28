@@ -12,4 +12,6 @@ public interface OperatorMapper extends BaseMapper<Operator> {
   List<Operator> findPage(@Param("offset") long offset, @Param("limit") long limit);
 
   long countAll();
+
+  int insertNewOperator(Operator operator);
 }
