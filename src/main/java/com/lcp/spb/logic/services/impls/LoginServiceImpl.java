@@ -36,7 +36,7 @@ public class LoginServiceImpl extends AbstractMapperService implements LoginServ
         .subscribeOn(Schedulers.boundedElastic())
         .flatMap(login -> {
           // 未查到用户 -> 完整的空序列
-          if (login == null) {
+          if (Objects.isNull(login)) {
             return Mono.empty();
           }
           // 口令哈希匹配 -> 返回用户，否则返回空

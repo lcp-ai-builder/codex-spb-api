@@ -5,7 +5,6 @@ import com.lcp.spb.bean.response.PageResponse;
 import com.lcp.spb.logic.services.AbstractMapperService;
 import com.lcp.spb.logic.services.OperatorService;
 import java.util.List;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -14,15 +13,13 @@ public class OperatorServiceImpl extends AbstractMapperService implements Operat
 
   @Override
   public Mono<PageResponse<Operator>> findPage(long page, long pageSize) {
-    long safePage = Math.max(page, NumberUtils.LONG_ONE);
-    long safePageSize = Math.max(pageSize, NumberUtils.LONG_ONE);
-    long offset = (safePage - NumberUtils.LONG_ONE) * safePageSize;
+    PageBounds bounds = normalizePage(page, pageSize);
 
     return fromBlocking(
         () -> {
-          List<Operator> records = operatorMapper.findPage(offset, safePageSize);
+          List<Operator> records = operatorMapper.findPage(bounds.getOffset(), bounds.getPageSize());
           long total = operatorMapper.countAll();
-          return new PageResponse<>(records, total, safePage, safePageSize);
+          return new PageResponse<>(records, total, bounds.getPage(), bounds.getPageSize());
         });
   }
 

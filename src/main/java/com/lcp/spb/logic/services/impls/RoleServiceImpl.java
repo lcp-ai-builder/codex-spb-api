@@ -5,7 +5,6 @@ import com.lcp.spb.bean.response.PageResponse;
 import com.lcp.spb.logic.services.AbstractMapperService;
 import com.lcp.spb.logic.services.RoleService;
 import java.util.List;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -14,15 +13,13 @@ public class RoleServiceImpl extends AbstractMapperService implements RoleServic
 
   @Override
   public Mono<PageResponse<Role>> findPage(long page, long pageSize) {
-    long safePage = Math.max(page, NumberUtils.LONG_ONE);
-    long safePageSize = Math.max(pageSize, NumberUtils.LONG_ONE);
-    long offset = (safePage - NumberUtils.LONG_ONE) * safePageSize;
+    PageBounds bounds = normalizePage(page, pageSize);
 
     return fromBlocking(
         () -> {
-          List<Role> records = roleMapper.findPage(offset, safePageSize);
+          List<Role> records = roleMapper.findPage(bounds.getOffset(), bounds.getPageSize());
           long total = roleMapper.countAll();
-          return new PageResponse<>(records, total, safePage, safePageSize);
+          return new PageResponse<>(records, total, bounds.getPage(), bounds.getPageSize());
         });
   }
 
