@@ -9,4 +9,8 @@ public interface RoleService {
   Mono<PageResponse<Role>> findPage(long page, long pageSize);
 
   Mono<Role> create(Role role);
+
+  Mono<Role> update(Role role);
+
+  Mono<Role> updateStatus(Long roleId, String status);
 }

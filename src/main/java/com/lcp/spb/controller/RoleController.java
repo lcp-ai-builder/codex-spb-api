@@ -3,7 +3,10 @@ package com.lcp.spb.controller;
 import com.lcp.spb.bean.Role;
 import com.lcp.spb.bean.response.PageResponse;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,5 +29,19 @@ public class RoleController extends AbstractController {
   public Mono<Role> createRole(@RequestBody Role role) {
     logger.info("Creating role {}", role.getCode());
     return roleService.create(role);
+  }
+
+  @PutMapping("/{id}")
+  public Mono<Role> updateRole(@PathVariable("id") Long roleId, @RequestBody Role role) {
+    logger.info("Updating role {} info", roleId);
+    role.setId(roleId);
+    return roleService.update(role);
+  }
+
+  @PutMapping("/{id}/status")
+  public Mono<Role> updateRoleStatus(
+      @PathVariable("id") Long roleId, @RequestParam("status") String status) {
+    logger.info("Updating role {} status to {}", roleId, status);
+    return roleService.updateStatus(roleId, status);
   }
 }

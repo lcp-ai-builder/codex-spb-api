@@ -9,18 +9,22 @@
     <result property="status" column="status" />
     <result property="createdAt" column="created_at" />
   </resultMap>
-  <sql id="Base_Column_List">        
+  <sql id="Base_Column_List">
         id, name, code, description, status, created_at
   </sql>
-  <select id="findPage" resultMap="RoleResultMap">        
+  <select id="findPage" resultMap="RoleResultMap">
         select
     <include refid="Base_Column_List" />
-        
         from rules
         order by id
         limit #{limit} offset #{offset}
   </select>
   <select id="countAll" resultType="long">
-    select count(id) from rules
+        select count(id) from rules
   </select>
+  <update id="updateStatusById">
+        update rules
+        set status = #{status}
+        where id = #{roleId}
+  </update>
 </mapper>

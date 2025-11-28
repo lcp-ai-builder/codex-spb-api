@@ -1,5 +1,6 @@
 package com.lcp.spb.bean;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -8,7 +9,8 @@ import java.time.LocalDate;
 @TableName("rules")
 public class Role {
 
-  @TableId private String id;
+  @TableId(value = "id", type = IdType.AUTO)
+  private Long id;
   private String name;
   private String code;
   private String description;
@@ -17,9 +19,9 @@ public class Role {
   @TableField("created_at")
   private LocalDate createdAt;
 
-  public String getId() { return id; }
+  public Long getId() { return id; }
 
-  public void setId(String id) { this.id = id; }
+  public void setId(Long id) { this.id = id; }
 
   public String getName() { return name; }
 

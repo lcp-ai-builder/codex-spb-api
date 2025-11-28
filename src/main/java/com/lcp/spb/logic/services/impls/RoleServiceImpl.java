@@ -5,6 +5,7 @@ import com.lcp.spb.bean.response.PageResponse;
 import com.lcp.spb.logic.services.AbstractMapperService;
 import com.lcp.spb.logic.services.RoleService;
 import java.util.List;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -13,9 +14,9 @@ public class RoleServiceImpl extends AbstractMapperService implements RoleServic
 
   @Override
   public Mono<PageResponse<Role>> findPage(long page, long pageSize) {
-    long safePage = Math.max(page, 1);
-    long safePageSize = Math.max(pageSize, 1);
-    long offset = (safePage - 1) * safePageSize;
+    long safePage = Math.max(page, NumberUtils.LONG_ONE);
+    long safePageSize = Math.max(pageSize, NumberUtils.LONG_ONE);
+    long offset = (safePage - NumberUtils.LONG_ONE) * safePageSize;
 
     return fromBlocking(
         () -> {
@@ -29,8 +30,28 @@ public class RoleServiceImpl extends AbstractMapperService implements RoleServic
   public Mono<Role> create(Role role) {
     return fromBlocking(
         () -> {
+          // Let database auto-generate primary key
+          role.setId(null);
           roleMapper.insert(role);
           return role;
+        });
+  }
+
+  @Override
+  public Mono<Role> update(Role role) {
+    return fromBlocking(
+        () -> {
+          roleMapper.updateById(role);
+          return roleMapper.selectById(role.getId());
+        });
+  }
+
+  @Override
+  public Mono<Role> updateStatus(Long roleId, String status) {
+    return fromBlocking(
+        () -> {
+          roleMapper.updateStatusById(roleId, status);
+          return roleMapper.selectById(roleId);
         });
   }
 }

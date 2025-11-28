@@ -8,3 +8,6 @@
 .使用mysql作为数据库
 .创建一个简单的用户实体类User，包含id、name、email字段
 .junit使用5版本
+
+
+

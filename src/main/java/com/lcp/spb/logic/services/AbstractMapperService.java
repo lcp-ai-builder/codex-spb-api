@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.lcp.spb.logic.dao.LoginMapper;
+import com.lcp.spb.logic.dao.OperatorMapper;
 import com.lcp.spb.logic.dao.RoleMapper;
 import com.lcp.spb.logic.dao.UserMapper;
 
@@ -14,6 +15,8 @@ public abstract class AbstractMapperService extends BaseService {
 
     @Autowired
     protected LoginMapper loginMapper;
+    @Autowired
+    protected OperatorMapper operatorMapper;
     @Autowired
     protected RoleMapper roleMapper;
     @Autowired
