@@ -1,10 +1,10 @@
 package com.lcp.spb.logic.services.impls;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lcp.spb.bean.Role;
 import com.lcp.spb.bean.response.PageResponse;
 import com.lcp.spb.logic.services.AbstractMapperService;
 import com.lcp.spb.logic.services.RoleService;
-import java.util.List;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -17,9 +17,13 @@ public class RoleServiceImpl extends AbstractMapperService implements RoleServic
 
     return fromBlocking(
         () -> {
-          List<Role> records = roleMapper.findPage(bounds.getOffset(), bounds.getPageSize());
-          long total = roleMapper.countAll();
-          return new PageResponse<>(records, total, bounds.getPage(), bounds.getPageSize());
+          Page<Role> pageRequest = new Page<>(bounds.getPage(), bounds.getPageSize());
+          Page<Role> resultPage = roleMapper.selectPage(pageRequest, null);
+          return new PageResponse<>(
+              resultPage.getRecords(),
+              resultPage.getTotal(),
+              resultPage.getCurrent(),
+              resultPage.getSize());
         });
   }
 

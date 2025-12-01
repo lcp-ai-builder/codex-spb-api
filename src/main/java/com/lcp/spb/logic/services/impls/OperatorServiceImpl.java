@@ -1,10 +1,10 @@
 package com.lcp.spb.logic.services.impls;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lcp.spb.bean.Operator;
 import com.lcp.spb.bean.response.PageResponse;
 import com.lcp.spb.logic.services.AbstractMapperService;
 import com.lcp.spb.logic.services.OperatorService;
-import java.util.List;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -17,9 +17,13 @@ public class OperatorServiceImpl extends AbstractMapperService implements Operat
 
     return fromBlocking(
         () -> {
-          List<Operator> records = operatorMapper.findPage(bounds.getOffset(), bounds.getPageSize());
-          long total = operatorMapper.countAll();
-          return new PageResponse<>(records, total, bounds.getPage(), bounds.getPageSize());
+          Page<Operator> pageRequest = new Page<>(bounds.getPage(), bounds.getPageSize());
+          Page<Operator> resultPage = operatorMapper.selectPage(pageRequest, null);
+          return new PageResponse<>(
+              resultPage.getRecords(),
+              resultPage.getTotal(),
+              resultPage.getCurrent(),
+              resultPage.getSize());
         });
   }
 

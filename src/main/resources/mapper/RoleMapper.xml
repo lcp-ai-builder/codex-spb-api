@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"\>
 <mapper namespace="com.lcp.spb.logic.dao.RoleMapper">
   <resultMap id="RoleResultMap" type="com.lcp.spb.bean.Role">
     <id property="id" column="id" />
@@ -12,16 +12,6 @@
   <sql id="Base_Column_List">
         id, name, code, description, status, created_at
   </sql>
-  <select id="findPage" resultMap="RoleResultMap">
-        select
-    <include refid="Base_Column_List" />
-        from rules
-        order by id
-        limit #{limit} offset #{offset}
-  </select>
-  <select id="countAll" resultType="long">
-        select count(id) from rules
-  </select>
   <update id="updateStatusById">
         update rules
         set status = #{status}
