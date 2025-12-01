@@ -11,4 +11,6 @@ public interface OperatorService {
   Mono<Operator> create(Operator operator);
 
   Mono<Operator> update(Operator operator);
+
+  Mono<Operator> updateIsOpen(Long operatorId, Integer isOpen);
 }

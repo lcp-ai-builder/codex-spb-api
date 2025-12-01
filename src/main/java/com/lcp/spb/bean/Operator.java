@@ -35,7 +35,8 @@ public class Operator {
   @TableField("role_id")
   private Long roleId;
 
-  private OperatorStatus status;
+  @TableField("is_open")
+  private Integer isOpen;
 
   @TableField("created_at")
   private LocalDateTime createdAt;

@@ -8,5 +8,5 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface RoleMapper extends BaseMapper<Role> {
 
-  int updateStatusById(@Param("roleId") Long roleId, @Param("status") String status);
+  int updateIsOpenById(@Param("roleId") Long roleId, @Param("isOpen") Integer isOpen);
 }

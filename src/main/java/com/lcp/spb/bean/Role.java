@@ -20,7 +20,9 @@ public class Role {
   private String name;
   private String code;
   private String description;
-  private String status;
+
+  @TableField("is_open")
+  private Integer isOpen;
 
   @TableField("created_at")
   private LocalDate createdAt;

@@ -37,4 +37,11 @@ public class OperatorController extends AbstractController {
     operator.setId(operatorId);
     return operatorService.update(operator);
   }
+
+  @PutMapping("/{id}/is-open")
+  public Mono<Operator> updateOperatorIsOpen(@PathVariable("id") Long operatorId,
+      @RequestParam("isOpen") Integer isOpen) {
+    logger.info("Updating operator {} isOpen to {}", operatorId, isOpen);
+    return operatorService.updateIsOpen(operatorId, isOpen);
+  }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"\>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lcp.spb.logic.dao.OperatorMapper">
   <resultMap id="OperatorResultMap" type="com.lcp.spb.bean.Operator">
     <id property="id" column="id" />
@@ -10,16 +10,22 @@
     <result property="phone" column="phone" />
     <result property="email" column="email" />
     <result property="roleId" column="role_id" />
-    <result property="status" column="status" />
+    <result property="isOpen" column="is_open" />
     <result property="createdAt" column="created_at" />
     <result property="lastLoginAt" column="last_login_at" />
   </resultMap>
   <sql id="Base_Column_List">
-        id, operator_no, name, login_name, login_password, phone, email, role_id, status, created_at, last_login_at
+        id, operator_no, name, login_name, login_password, phone, email, role_id, is_open, created_at, last_login_at
   </sql>
   <insert id="insertNewOperator" parameterType="com.lcp.spb.bean.Operator" useGeneratedKeys="true"
     keyProperty="id" keyColumn="id">
     insert into operators (operator_no, name, login_name, phone, role_id)
     values (#{operatorNo}, #{name}, #{loginName}, #{phone}, #{roleId})
   </insert>
+
+  <update id="updateIsOpenById">
+        update operators
+        set is_open = #{isOpen}
+        where id = #{operatorId}
+  </update>
 </mapper>

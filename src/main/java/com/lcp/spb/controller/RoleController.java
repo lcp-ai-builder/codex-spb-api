@@ -37,10 +37,10 @@ public class RoleController extends AbstractController {
     return roleService.update(role);
   }
 
-  @PutMapping("/{id}/status")
-  public Mono<Role> updateRoleStatus(
-      @PathVariable("id") Long roleId, @RequestParam("status") String status) {
-    logger.info("Updating role {} status to {}", roleId, status);
-    return roleService.updateStatus(roleId, status);
+  @PutMapping("/{id}/is-open")
+  public Mono<Role> updateRoleIsOpen(
+      @PathVariable("id") Long roleId, @RequestParam("isOpen") Integer isOpen) {
+    logger.info("Updating role {} isOpen to {}", roleId, isOpen);
+    return roleService.updateIsOpen(roleId, isOpen);
   }
 }

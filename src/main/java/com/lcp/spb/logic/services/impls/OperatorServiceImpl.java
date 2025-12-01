@@ -45,4 +45,13 @@ public class OperatorServiceImpl extends AbstractMapperService implements Operat
           return operatorMapper.selectById(operator.getId());
         });
   }
+
+  @Override
+  public Mono<Operator> updateIsOpen(Long operatorId, Integer isOpen) {
+    return fromBlocking(
+        () -> {
+          operatorMapper.updateIsOpenById(operatorId, isOpen);
+          return operatorMapper.selectById(operatorId);
+        });
+  }
 }

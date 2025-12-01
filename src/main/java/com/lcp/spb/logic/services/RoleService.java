@@ -12,5 +12,5 @@ public interface RoleService {
 
   Mono<Role> update(Role role);
 
-  Mono<Role> updateStatus(Long roleId, String status);
+  Mono<Role> updateIsOpen(Long roleId, Integer isOpen);
 }

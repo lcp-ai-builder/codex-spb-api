@@ -48,10 +48,10 @@ public class RoleServiceImpl extends AbstractMapperService implements RoleServic
   }
 
   @Override
-  public Mono<Role> updateStatus(Long roleId, String status) {
+  public Mono<Role> updateIsOpen(Long roleId, Integer isOpen) {
     return fromBlocking(
         () -> {
-          roleMapper.updateStatusById(roleId, status);
+          roleMapper.updateIsOpenById(roleId, isOpen);
           return roleMapper.selectById(roleId);
         });
   }
