@@ -1,26 +1,12 @@
 package com.lcp.spb.logic.services;
 
-import com.lcp.spb.logic.dao.LoginMapper;
-import com.lcp.spb.logic.dao.OperatorMapper;
-import com.lcp.spb.logic.dao.RoleMapper;
-import com.lcp.spb.logic.dao.UserMapper;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractMapperService extends BaseService {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
-
-    @Autowired
-    protected LoginMapper loginMapper;
-    @Autowired
-    protected OperatorMapper operatorMapper;
-    @Autowired
-    protected RoleMapper roleMapper;
-    @Autowired
-    protected UserMapper userMapper;
 
     protected PageBounds normalizePage(long page, long pageSize) {
         var safePage = Math.max(page, NumberUtils.LONG_ONE);

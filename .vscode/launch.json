@@ -6,10 +6,10 @@
   "configurations": [
     {
       "type": "java",
-      "name": "DemoApplication",
+      "name": "SpbApiApplication",
       "request": "launch",
-      "mainClass": "com.lcp.spb.DemoApplication",
-      "projectName": "demo",
+      "mainClass": "com.lcp.spb.SpbApiApplication",
+      "projectName": "codex-spb-api",
       "preLaunchTask": "mvn clean package"
     },
     {
