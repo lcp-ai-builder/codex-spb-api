@@ -9,9 +9,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Getter @Setter @NoArgsConstructor
 public class UserDoc {
 
   @JsonProperty("user_name")
@@ -26,7 +24,7 @@ public class UserDoc {
   private String description;
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals (Object obj) {
     if (this == obj) {
       return true;
     }
@@ -44,7 +42,7 @@ public class UserDoc {
   }
 
   @Override
-  public int hashCode() {
+  public int hashCode () {
     return new HashCodeBuilder(17, 37)
         .append(userName)
         .append(age)
@@ -55,7 +53,7 @@ public class UserDoc {
   }
 
   @Override
-  public String toString() {
+  public String toString () {
     return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
         .append("userName", userName)
         .append("age", age)

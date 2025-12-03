@@ -10,16 +10,16 @@ import reactor.core.publisher.Mono;
 
 public interface ElasticsearchCryptoTradeService {
 
-    Mono<CryptoTradeInfo> save(CryptoTradeInfo tradeInfo);
+    Mono<CryptoTradeInfo> save (CryptoTradeInfo tradeInfo);
 
-    Flux<CryptoTradeInfo> search(
-        String userId,
-        CryptoCurrency symbol,
-        TradeSide side,
-        OrderType orderType,
-        OrderStatus status,
-        String exchange,
-        String notesKeyword,
-        int page,
-        int size);
+    Flux<CryptoTradeInfo> search (
+            String userId,
+            CryptoCurrency symbol,
+            TradeSide side,
+            OrderType orderType,
+            OrderStatus status,
+            String exchange,
+            String notesKeyword,
+            int page,
+            int size);
 }

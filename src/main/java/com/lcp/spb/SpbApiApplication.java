@@ -12,12 +12,12 @@ public class SpbApiApplication {
 
   private static final Logger log = LoggerFactory.getLogger(SpbApiApplication.class);
 
-  public static void main(String[] args) {
+  public static void main (String[] args) {
     SpringApplication.run(SpbApiApplication.class, args);
   }
 
   @Bean
-  CommandLineRunner logStartup() {
+  CommandLineRunner logStartup () {
     return args -> log.info("api service started successfully");
   }
 }

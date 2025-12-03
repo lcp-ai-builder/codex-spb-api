@@ -16,20 +16,19 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@RestController
-@RequestMapping("/es/users")
+@RestController @RequestMapping("/es/users")
 public class ElasticsearchUserController {
 
   @Autowired
   private ElasticsearchUserService elasticsearchUserService;
 
   @GetMapping
-  public Flux<EsUser> listUsers() {
+  public Flux<EsUser> listUsers () {
     return elasticsearchUserService.findAll();
   }
 
   @GetMapping("/{id}")
-  public Mono<ResponseEntity<EsUser>> getUser(@PathVariable String id) {
+  public Mono<ResponseEntity<EsUser>> getUser (@PathVariable String id) {
     return elasticsearchUserService
         .findById(id)
         .map(ResponseEntity::ok)
@@ -37,12 +36,12 @@ public class ElasticsearchUserController {
   }
 
   @PostMapping
-  public Mono<EsUser> createUser(@RequestBody EsUser user) {
+  public Mono<EsUser> createUser (@RequestBody EsUser user) {
     return elasticsearchUserService.save(user);
   }
 
   @PutMapping("/{id}")
-  public Mono<ResponseEntity<EsUser>> updateUser(
+  public Mono<ResponseEntity<EsUser>> updateUser (
       @PathVariable String id, @RequestBody EsUser user) {
     return elasticsearchUserService
         .update(id, user)
@@ -51,7 +50,7 @@ public class ElasticsearchUserController {
   }
 
   @DeleteMapping("/{id}")
-  public Mono<ResponseEntity<Void>> deleteUser(@PathVariable String id) {
+  public Mono<ResponseEntity<Void>> deleteUser (@PathVariable String id) {
     return elasticsearchUserService
         .delete(id)
         .map(deleted -> deleted

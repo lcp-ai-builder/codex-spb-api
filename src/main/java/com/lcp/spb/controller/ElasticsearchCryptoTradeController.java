@@ -16,20 +16,19 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@RestController
-@RequestMapping("/es/trades")
+@RestController @RequestMapping("/es/trades")
 public class ElasticsearchCryptoTradeController {
 
   @Autowired
   private ElasticsearchCryptoTradeService elasticsearchCryptoTradeService;
 
   @PostMapping
-  public Mono<CryptoTradeInfo> saveTrade(@RequestBody CryptoTradeInfo tradeInfo) {
+  public Mono<CryptoTradeInfo> saveTrade (@RequestBody CryptoTradeInfo tradeInfo) {
     return elasticsearchCryptoTradeService.save(tradeInfo);
   }
 
   @GetMapping
-  public Flux<CryptoTradeInfo> searchTrades(
+  public Flux<CryptoTradeInfo> searchTrades (
       @RequestParam(value = "userId", required = false) String userId,
       @RequestParam(value = "symbol", required = false) CryptoCurrency symbol,
       @RequestParam(value = "side", required = false) TradeSide side,

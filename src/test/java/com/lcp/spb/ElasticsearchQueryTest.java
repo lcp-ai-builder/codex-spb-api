@@ -29,7 +29,7 @@ class ElasticsearchQueryTest {
   private ElasticsearchClient elasticsearchClient;
 
   @Test
-  void queryUserDataIndex() throws IOException {
+  void queryUserDataIndex () throws IOException {
     assumeTrue(elasticsearchClient.ping().value(), "Elasticsearch not reachable");
     assumeTrue(elasticsearchClient.indices().exists(r -> r.index(INDEX)).value(),
         "Index user-data is missing");

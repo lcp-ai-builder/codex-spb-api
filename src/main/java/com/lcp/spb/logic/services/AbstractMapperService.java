@@ -8,7 +8,7 @@ public abstract class AbstractMapperService extends BaseService {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected PageBounds normalizePage(long page, long pageSize) {
+    protected PageBounds normalizePage (long page, long pageSize) {
         var safePage = Math.max(page, NumberUtils.LONG_ONE);
         var safePageSize = Math.max(pageSize, NumberUtils.LONG_ONE);
         var offset = (safePage - NumberUtils.LONG_ONE) * safePageSize;
@@ -26,15 +26,15 @@ public abstract class AbstractMapperService extends BaseService {
             this.offset = offset;
         }
 
-        public long getPage() {
+        public long getPage () {
             return page;
         }
 
-        public long getPageSize() {
+        public long getPageSize () {
             return pageSize;
         }
 
-        public long getOffset() {
+        public long getOffset () {
             return offset;
         }
     }

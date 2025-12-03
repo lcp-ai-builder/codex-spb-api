@@ -11,9 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Data @NoArgsConstructor @AllArgsConstructor
 public class CryptoTradeInfo {
 
     /** 常见的虚拟币交易记录，包含价格、数量、费用和时间等核心信息 */

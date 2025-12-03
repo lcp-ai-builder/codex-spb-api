@@ -12,7 +12,7 @@ public abstract class AbstractController {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected String sha256(String value) {
+    protected String sha256 (String value) {
         if (value == null) {
             return StringUtils.EMPTY;
         }

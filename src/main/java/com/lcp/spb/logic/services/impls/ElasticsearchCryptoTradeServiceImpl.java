@@ -42,15 +42,8 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
 
     @Override
     public Flux<CryptoTradeInfo> search (
-            String userId,
-            CryptoCurrency symbol,
-            TradeSide side,
-            OrderType orderType,
-            OrderStatus status,
-            String exchange,
-            String notesKeyword,
-            int page,
-            int size) {
+            String userId, CryptoCurrency symbol, TradeSide side, OrderType orderType,
+            OrderStatus status, String exchange, String notesKeyword, int page, int size) {
 
         int safePage = Math.max(page, 1);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);

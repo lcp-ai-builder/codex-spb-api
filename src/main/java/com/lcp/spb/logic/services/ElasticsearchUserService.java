@@ -6,13 +6,13 @@ import reactor.core.publisher.Mono;
 
 public interface ElasticsearchUserService {
 
-  Flux<EsUser> findAll();
+  Flux<EsUser> findAll ();
 
-  Mono<EsUser> findById(String id);
+  Mono<EsUser> findById (String id);
 
-  Mono<EsUser> save(EsUser user);
+  Mono<EsUser> save (EsUser user);
 
-  Mono<EsUser> update(String id, EsUser user);
+  Mono<EsUser> update (String id, EsUser user);
 
-  Mono<Boolean> delete(String id);
+  Mono<Boolean> delete (String id);
 }

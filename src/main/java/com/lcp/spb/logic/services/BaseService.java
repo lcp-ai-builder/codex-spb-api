@@ -7,7 +7,7 @@ import reactor.core.scheduler.Schedulers;
 public abstract class BaseService {
 
     // 将阻塞调用包装到弹性线程池，避免堵塞事件线程
-    protected <T> Mono<T> fromBlocking(Callable<T> action) {
+    protected <T> Mono<T> fromBlocking (Callable<T> action) {
         return Mono.fromCallable(action).subscribeOn(Schedulers.boundedElastic());
     }
 }

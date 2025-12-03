@@ -23,13 +23,13 @@ class ElasticsearchSeedTest {
   private ElasticsearchClient elasticsearchClient;
 
   @BeforeEach
-  void ensureElasticsearchIsAvailable() throws IOException {
+  void ensureElasticsearchIsAvailable () throws IOException {
     assumeTrue(elasticsearchClient.ping().value(), "Elasticsearch not reachable");
     createIndexIfMissing();
   }
 
   @Test
-  void insertRandomUserDocuments() throws IOException {
+  void insertRandomUserDocuments () throws IOException {
     int docsToInsert = 30;
     long beforeCount = elasticsearchClient.count(c -> c.index(INDEX)).count();
 
@@ -45,7 +45,7 @@ class ElasticsearchSeedTest {
         "Should have added the expected number of documents");
   }
 
-  private UserDoc buildRandomUser() {
+  private UserDoc buildRandomUser () {
     UserDoc doc = new UserDoc();
     doc.setUserName(randomChineseName());
     doc.setAge(ThreadLocalRandom.current().nextInt(20, 60));
@@ -55,7 +55,7 @@ class ElasticsearchSeedTest {
     return doc;
   }
 
-  private void createIndexIfMissing() throws IOException {
+  private void createIndexIfMissing () throws IOException {
     boolean exists = elasticsearchClient.indices().exists(e -> e.index(INDEX)).value();
     if (exists) {
       return;
@@ -72,7 +72,7 @@ class ElasticsearchSeedTest {
             .properties("description", p -> p.text(t -> t))));
   }
 
-  private String randomChineseName() {
+  private String randomChineseName () {
     List<String> familyNames = List.of("张", "李", "王", "赵", "刘", "陈", "杨", "黄", "周", "吴");
     List<String> givenNames = List.of("晨", "杰", "华", "琳", "芳", "静", "翔", "凯", "敏", "倩");
     String family = familyNames.get(ThreadLocalRandom.current().nextInt(familyNames.size()));
@@ -83,14 +83,14 @@ class ElasticsearchSeedTest {
     return family + given;
   }
 
-  private String randomEmail() {
+  private String randomEmail () {
     String local = randomAlphaLower(6, 10);
     String domain = List.of("example.com", "mail.com", "lcp.com")
         .get(ThreadLocalRandom.current().nextInt(3));
     return local + "@" + domain;
   }
 
-  private String randomChineseDescription() {
+  private String randomChineseDescription () {
     List<String> hobbies = List.of("喜欢看书", "热爱编程", "享受旅游", "偶尔运动", "学习烹饪", "听音乐", "摄影记录");
     List<String> traits = List.of("乐观", "好学", "专注", "开朗", "细心", "爱分享");
     String hobby = hobbies.get(ThreadLocalRandom.current().nextInt(hobbies.size()));
@@ -98,7 +98,7 @@ class ElasticsearchSeedTest {
     return hobby + "，" + trait + "的技术爱好者";
   }
 
-  private String randomAlphaLower(int minLen, int maxLen) {
+  private String randomAlphaLower (int minLen, int maxLen) {
     int len = ThreadLocalRandom.current().nextInt(minLen, maxLen + 1);
     StringBuilder sb = new StringBuilder(len);
     for (int i = 0; i < len; i++) {
