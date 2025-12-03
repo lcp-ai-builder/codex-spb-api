@@ -5,14 +5,14 @@ import com.lcp.spb.bean.trade.enums.CryptoCurrency;
 import com.lcp.spb.bean.trade.enums.OrderStatus;
 import com.lcp.spb.bean.trade.enums.OrderType;
 import com.lcp.spb.bean.trade.enums.TradeSide;
-import reactor.core.publisher.Flux;
+import java.util.List;
 import reactor.core.publisher.Mono;
 
 public interface ElasticsearchCryptoTradeService {
 
     Mono<CryptoTradeInfo> save (CryptoTradeInfo tradeInfo);
 
-    Flux<CryptoTradeInfo> search (
+    Mono<List<CryptoTradeInfo>> search (
             String userId,
             CryptoCurrency symbol,
             TradeSide side,

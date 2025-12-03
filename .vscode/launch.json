@@ -14,9 +14,11 @@
     },
     {
       "type": "java",
-      "name": "Current File",
+      "name": "Spring Boot: SpbApiApplication",
       "request": "launch",
-      "mainClass": "${file}"
+      "mainClass": "com.lcp.spb.SpbApiApplication",
+      "projectName": "codex-spb-api",
+      "vmArgs": "-Dspring.profiles.active=default"
     }
   ]
 }

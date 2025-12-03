@@ -10,10 +10,10 @@ import com.lcp.spb.bean.trade.enums.OrderType;
 import com.lcp.spb.bean.trade.enums.TradeSide;
 import com.lcp.spb.logic.services.BaseService;
 import com.lcp.spb.logic.services.ElasticsearchCryptoTradeService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -41,7 +41,7 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
     }
 
     @Override
-    public Flux<CryptoTradeInfo> search (
+    public Mono<List<CryptoTradeInfo>> search (
             String userId, CryptoCurrency symbol, TradeSide side, OrderType orderType,
             OrderStatus status, String exchange, String notesKeyword, int page, int size) {
 
@@ -49,7 +49,7 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         int from = (safePage - 1) * safeSize;
 
-        return fromBlocking( () -> elasticsearchClient.search(s -> {
+        return fromBlocking(() -> elasticsearchClient.search(s -> {
             s.index(INDEX).from(from).size(safeSize);
             s.query(q -> q.bool(b -> {
                 if (StringUtils.hasText(userId)) {
@@ -77,8 +77,9 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
             }));
             return s;
         }, CryptoTradeInfo.class))
-                .flatMapMany(response -> Flux.fromIterable(response.hits().hits()))
-                .map(this::attachIdSafely);
+            .flatMapMany(response -> reactor.core.publisher.Flux.fromIterable(response.hits().hits()))
+            .map(this::attachIdSafely)
+            .collectList();
     }
 
     private Query term (String field, String value) {
