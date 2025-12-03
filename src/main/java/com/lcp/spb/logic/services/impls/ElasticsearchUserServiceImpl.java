@@ -8,6 +8,8 @@ import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -17,60 +19,57 @@ public class ElasticsearchUserServiceImpl extends BaseService implements Elastic
 
   private static final String INDEX = "users";
 
-  private final ElasticsearchClient elasticsearchClient;
+  @Autowired
+  private ElasticsearchClient elasticsearchClient;
 
-  public ElasticsearchUserServiceImpl(ElasticsearchClient elasticsearchClient) {
-    this.elasticsearchClient = elasticsearchClient;
+  @Override
+  public Flux<EsUser> findAll () {
+    return fromBlocking( () -> elasticsearchClient.search(
+        s -> s.index(INDEX).query(q -> q.matchAll(match -> match)), EsUser.class))
+            .flatMapMany(searchResponse -> Flux.fromIterable(searchResponse.hits().hits()))
+            .map(this::mapHit)
+            .filter(Objects::nonNull);
   }
 
   @Override
-  public Flux<EsUser> findAll() {
-    return fromBlocking(() -> elasticsearchClient.search(
-            s -> s.index(INDEX).query(q -> q.matchAll(match -> match)), EsUser.class))
-        .flatMapMany(searchResponse -> Flux.fromIterable(searchResponse.hits().hits()))
-        .map(this::mapHit)
-        .filter(Objects::nonNull);
+  public Mono<EsUser> findById (String id) {
+    return fromBlocking( () -> elasticsearchClient.get(
+        g -> g.index(INDEX).id(id), EsUser.class))
+            .flatMap(response -> response.found()
+                ? Mono.justOrEmpty(attachId(response.source(), response.id()))
+                : Mono.empty());
   }
 
   @Override
-  public Mono<EsUser> findById(String id) {
-    return fromBlocking(() -> elasticsearchClient.get(
-            g -> g.index(INDEX).id(id), EsUser.class))
-        .flatMap(response -> response.found()
-            ? Mono.justOrEmpty(attachId(response.source(), response.id()))
-            : Mono.empty());
-  }
-
-  @Override
-  public Mono<EsUser> save(EsUser user) {
-    return fromBlocking(() -> elasticsearchClient.index(builder -> {
-          builder.index(INDEX).document(user);
-          if (user.getId() != null) {
-            builder.id(user.getId());
-          }
-          return builder;
-        }))
+  public Mono<EsUser> save (EsUser user) {
+    return fromBlocking( () -> elasticsearchClient.index(builder -> {
+      builder.index(INDEX).document(user);
+      if (user.getId() != null) {
+        builder.id(user.getId());
+      }
+      return builder;
+    }))
         .map(response -> copyWithId(user, response.id()));
   }
 
   @Override
-  public Mono<EsUser> update(String id, EsUser user) {
+  public Mono<EsUser> update (String id, EsUser user) {
     return findById(id)
         .flatMap(existing -> save(copyWithId(user, id)));
   }
 
   @Override
-  public Mono<Boolean> delete(String id) {
-    return fromBlocking(() -> elasticsearchClient.delete(d -> d.index(INDEX).id(id)))
+  public Mono<Boolean> delete (String id) {
+    return fromBlocking( () -> elasticsearchClient.delete(d -> d.index(INDEX).id(id)))
         .map(DeleteResponse::result)
         .map(result -> result == Result.Deleted);
   }
 
-  private EsUser mapHit(Hit<EsUser> hit) {
+  private EsUser mapHit (Hit<EsUser> hit) {
     return attachId(hit.source(), hit.id());
   }
 
-  private EsUser attachId(EsUser user, String id) {
+  private EsUser attachId (EsUser user, String id) {
     if (user == null) {
       return null;
     }
@@ -78,7 +77,7 @@ public class ElasticsearchUserServiceImpl extends BaseService implements Elastic
     return user;
   }
 
-  private EsUser copyWithId(EsUser source, String id) {
+  private EsUser copyWithId (EsUser source, String id) {
     return new EsUser(id, source.getName(), source.getEmail());
   }
 }

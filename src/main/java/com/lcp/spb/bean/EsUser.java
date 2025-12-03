@@ -12,7 +12,8 @@ import org.springframework.data.elasticsearch.annotations.Document;
 @Document(indexName = "users")
 public class EsUser {
 
-  @Id private String id;
+  @Id
+  private String id;
   private String name;
   private String email;
 }

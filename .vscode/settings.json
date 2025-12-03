@@ -4,6 +4,12 @@
   "java.compile.nullAnalysis.mode": "automatic",
   "java.configuration.updateBuildConfiguration": "automatic",
   "workbench.colorTheme": "Atom One Dark",
+  "editor.formatOnSave": true,
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java"
+  },
+  "java.format.settings.url": "file://${workspaceFolder}/.vscode/eclipse-java-google-style.xml",
+  "java.format.settings.profile": "GoogleStyle",
   "files.exclude": {
     "**/target": true,
     "**/.git": true,

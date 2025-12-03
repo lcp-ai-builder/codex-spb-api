@@ -2,6 +2,8 @@ package com.lcp.spb.controller;
 
 import com.lcp.spb.bean.EsUser;
 import com.lcp.spb.logic.services.ElasticsearchUserService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +20,8 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/es/users")
 public class ElasticsearchUserController {
 
-  private final ElasticsearchUserService elasticsearchUserService;
-
-  public ElasticsearchUserController(ElasticsearchUserService elasticsearchUserService) {
-    this.elasticsearchUserService = elasticsearchUserService;
-  }
+  @Autowired
+  private ElasticsearchUserService elasticsearchUserService;
 
   @GetMapping
   public Flux<EsUser> listUsers() {

@@ -22,7 +22,6 @@
     insert into operators (operator_no, name, login_name, phone, role_id)
     values (#{operatorNo}, #{name}, #{loginName}, #{phone}, #{roleId})
   </insert>
-
   <update id="updateIsOpenById">
         update operators
         set is_open = #{isOpen}
