@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.lcp.spb.bean.trade.CryptoTradeInfo;
+import com.lcp.spb.bean.trade.SearchTradesResponse;
 import com.lcp.spb.bean.trade.enums.CryptoCurrency;
 import com.lcp.spb.bean.trade.enums.OrderStatus;
 import com.lcp.spb.bean.trade.enums.OrderType;
@@ -14,8 +15,8 @@ import com.lcp.spb.bean.trade.enums.TradeSide;
 import com.lcp.spb.logic.services.ElasticsearchCryptoTradeService;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.UUID;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -53,7 +54,7 @@ class ElasticsearchCryptoTradeSearchTest {
 
   @Test
   void searchTradesByExchangeAndUser () throws Exception {
-    var found = tradeService.search(
+    SearchTradesResponse found = tradeService.search(
         "user-search-1",
         CryptoCurrency.BTC,
         null,
@@ -62,10 +63,9 @@ class ElasticsearchCryptoTradeSearchTest {
         "binance",
         null,
         1,
-        100);
-    List<CryptoTradeInfo> results = found.block();
-    if (results != null) {
-      logging.info("query result count: {}", results.size());
+        100).block();
+    if (found != null && found.getTrades() != null) {
+      logging.info("query result count: {}", found.getTrades().size());
     }
   }
 
@@ -80,20 +80,24 @@ class ElasticsearchCryptoTradeSearchTest {
     tradeService.save(tradeC).block();
     elasticsearchClient.indices().refresh(r -> r.index(INDEX));
 
-    List<CryptoTradeInfo> results = tradeService
+    SearchTradesResponse results = tradeService
         .search(null, null, null, null, null, null, null, 1, 100).block();
 
-    assertFalse(results.isEmpty(), "Should return trades when no filters are provided");
-    assertTrue(results.size() >= 3, "Should include inserted trades when querying all");
+    assertFalse(results == null || results.getTrades().isEmpty(),
+        "Should return trades when no filters are provided");
+    assertTrue(results.getTrades().size() >= 3,
+        "Should include inserted trades when querying all");
   }
 
   @Test
   void searchTradesByNotesFuzzy () throws Exception {
 
-    var results = tradeService
+    SearchTradesResponse results = tradeService
         .search(null, null, null, null, null, null, "人工智能", 1, 100).block();
 
-    results.forEach(crypto -> logging.info("crypto:{}", crypto.getTradeId()));
+    if (results != null && results.getTrades() != null) {
+      results.getTrades().forEach(crypto -> logging.info("crypto:{}", crypto.getTradeId()));
+    }
   }
 
   private CryptoTradeInfo baseTrade (String userId, String exchange) {

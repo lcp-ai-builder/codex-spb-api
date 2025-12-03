@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.lcp.spb.bean.trade.CryptoTradeInfo;
+import com.lcp.spb.bean.trade.SearchTradesResponse;
 import com.lcp.spb.bean.trade.enums.CryptoCurrency;
 import com.lcp.spb.bean.trade.enums.OrderStatus;
 import com.lcp.spb.bean.trade.enums.OrderType;
@@ -39,6 +40,7 @@ class ElasticsearchCryptoTradeControllerTest {
     List<CryptoTradeInfo> trades = List.of(
         sampleTrade("t-1", "u1"),
         sampleTrade("t-2", "u1"));
+    SearchTradesResponse response = new SearchTradesResponse(trades, 2, 1, 5);
 
     when(tradeService.search(
         eq("u1"),
@@ -50,7 +52,7 @@ class ElasticsearchCryptoTradeControllerTest {
         eq("人工智能"),
         eq(1),
         eq(5)))
-            .thenReturn(Mono.just(trades));
+            .thenReturn(Mono.just(response));
 
     webTestClient
         .get()
@@ -70,9 +72,14 @@ class ElasticsearchCryptoTradeControllerTest {
         .exchange()
         .expectStatus()
         .isOk()
-        .expectBodyList(CryptoTradeInfo.class)
-        .hasSize(2)
-        .contains(trades.get(0), trades.get(1));
+        .expectBody(SearchTradesResponse.class)
+        .value(body -> {
+          org.junit.jupiter.api.Assertions.assertNotNull(body);
+          org.junit.jupiter.api.Assertions.assertEquals(2, body.getTrades().size());
+          org.junit.jupiter.api.Assertions.assertEquals(2, body.getTotal());
+          org.junit.jupiter.api.Assertions.assertEquals(1, body.getPage());
+          org.junit.jupiter.api.Assertions.assertEquals(5, body.getSize());
+        });
 
     // Log returned data for visibility
     webTestClient
@@ -93,8 +100,8 @@ class ElasticsearchCryptoTradeControllerTest {
         .exchange()
         .expectStatus()
         .isOk()
-        .expectBodyList(CryptoTradeInfo.class)
-        .value(list -> log.info("searchTrades returned: {}", list));
+        .expectBody(SearchTradesResponse.class)
+        .value(res -> log.info("searchTrades returned: {}", res));
   }
 
   @TestConfiguration

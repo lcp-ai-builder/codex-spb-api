@@ -1,12 +1,12 @@
 package com.lcp.spb.controller;
 
 import com.lcp.spb.bean.trade.CryptoTradeInfo;
+import com.lcp.spb.bean.trade.SearchTradesResponse;
 import com.lcp.spb.bean.trade.enums.CryptoCurrency;
 import com.lcp.spb.bean.trade.enums.OrderStatus;
 import com.lcp.spb.bean.trade.enums.OrderType;
 import com.lcp.spb.bean.trade.enums.TradeSide;
 import com.lcp.spb.logic.services.ElasticsearchCryptoTradeService;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +28,7 @@ public class ElasticsearchCryptoTradeController {
   }
 
   @GetMapping
-  public Mono<List<CryptoTradeInfo>> searchTrades (
+  public Mono<SearchTradesResponse> searchTrades (
       @RequestParam(value = "userId", required = false) String userId,
       @RequestParam(value = "symbol", required = false) CryptoCurrency symbol,
       @RequestParam(value = "side", required = false) TradeSide side,
