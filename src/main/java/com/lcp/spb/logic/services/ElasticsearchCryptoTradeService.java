@@ -1,6 +1,7 @@
 package com.lcp.spb.logic.services;
 
 import com.lcp.spb.bean.trade.CryptoTradeInfo;
+import com.lcp.spb.bean.trade.RecentHourTradeSummary;
 import com.lcp.spb.bean.trade.SearchTradesResponse;
 import com.lcp.spb.bean.trade.enums.CryptoCurrency;
 import com.lcp.spb.bean.trade.enums.OrderStatus;
@@ -22,4 +23,6 @@ public interface ElasticsearchCryptoTradeService {
             String notesKeyword,
             int page,
             int size);
+
+    Mono<RecentHourTradeSummary> recentHourSummary ();
 }

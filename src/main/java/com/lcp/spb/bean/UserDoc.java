@@ -1,6 +1,7 @@
 package com.lcp.spb.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,7 +29,7 @@ public class UserDoc {
     if (this == obj) {
       return true;
     }
-    if (obj == null || getClass() != obj.getClass()) {
+    if (Objects.isNull(obj) || getClass() != obj.getClass()) {
       return false;
     }
     UserDoc other = (UserDoc) obj;

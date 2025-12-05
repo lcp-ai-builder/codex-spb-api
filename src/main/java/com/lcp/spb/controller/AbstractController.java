@@ -3,6 +3,7 @@ package com.lcp.spb.controller;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -10,10 +11,10 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractController {
 
-    protected Logger logger = LoggerFactory.getLogger(getClass());
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected String sha256 (String value) {
-        if (value == null) {
+        if (Objects.isNull(value)) {
             return StringUtils.EMPTY;
         }
         try {

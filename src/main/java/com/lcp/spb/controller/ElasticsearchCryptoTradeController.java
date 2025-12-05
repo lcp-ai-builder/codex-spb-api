@@ -1,6 +1,7 @@
 package com.lcp.spb.controller;
 
 import com.lcp.spb.bean.trade.CryptoTradeInfo;
+import com.lcp.spb.bean.trade.RecentHourTradeSummary;
 import com.lcp.spb.bean.trade.SearchTradesResponse;
 import com.lcp.spb.bean.trade.enums.CryptoCurrency;
 import com.lcp.spb.bean.trade.enums.OrderStatus;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController @RequestMapping("/es/trades")
-public class ElasticsearchCryptoTradeController {
+public class ElasticsearchCryptoTradeController extends AbstractController {
 
   @Autowired
   private ElasticsearchCryptoTradeService elasticsearchCryptoTradeService;
@@ -40,5 +41,10 @@ public class ElasticsearchCryptoTradeController {
       @RequestParam(value = "size", defaultValue = "20") int size) {
     return elasticsearchCryptoTradeService.search(
         userId, symbol, side, orderType, status, exchange, notesKeyword, page, size);
+  }
+
+  @GetMapping("/summary/recent-hour")
+  public Mono<RecentHourTradeSummary> recentHourSummary () {
+    return elasticsearchCryptoTradeService.recentHourSummary();
   }
 }

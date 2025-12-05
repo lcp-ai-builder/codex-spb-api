@@ -1,7 +1,6 @@
 package com.lcp.spb;
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -15,7 +14,6 @@ import com.lcp.spb.bean.trade.enums.TradeSide;
 import com.lcp.spb.logic.services.ElasticsearchCryptoTradeService;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
