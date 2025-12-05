@@ -6,6 +6,7 @@ import com.lcp.spb.logic.services.ElasticsearchCryptoTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 import reactor.core.publisher.Sinks;
@@ -14,6 +15,7 @@ import reactor.core.publisher.Sinks;
  * 定时推送最近一小时交易汇总（带回退）到 WebSocket。
  */
 @Configuration
+@ConditionalOnProperty(name = "trade.summary.mock.enabled", havingValue = "false", matchIfMissing = true)
 public class TradeSummaryScheduler {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
@@ -21,11 +23,8 @@ public class TradeSummaryScheduler {
     @Autowired
     private ElasticsearchCryptoTradeService cryptoTradeService;
 
-    private final Sinks.Many<RecentHourTradeSummary> tradeSummarySink;
-
-    public TradeSummaryScheduler() {
-        this.tradeSummarySink = Sinks.many().replay().latest();
-    }
+    @Autowired
+    private Sinks.Many<RecentHourTradeSummary> tradeSummarySink;
 
     public Sinks.Many<RecentHourTradeSummary> getTradeSummarySink () {
         return tradeSummarySink;

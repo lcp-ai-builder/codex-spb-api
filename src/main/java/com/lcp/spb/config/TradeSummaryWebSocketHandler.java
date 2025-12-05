@@ -4,12 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lcp.spb.bean.trade.RecentHourTradeSummary;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 /**
  * WebFlux WebSocket 处理器：向连接的客户端广播最近一小时交易汇总。
@@ -21,12 +21,11 @@ public class TradeSummaryWebSocketHandler implements WebSocketHandler {
     private ObjectMapper objectMapper;
 
     @Autowired
-    @Lazy
-    private TradeSummaryScheduler tradeSummaryScheduler;
+    private Sinks.Many<RecentHourTradeSummary> tradeSummarySink;
 
     @Override
     public Mono<Void> handle (WebSocketSession session) {
-        Flux<String> payloadFlux = tradeSummaryScheduler.getTradeSummarySink().asFlux()
+        Flux<String> payloadFlux = tradeSummarySink.asFlux()
                 .map(this::toJsonSafely)
                 .onErrorResume(error -> Flux.empty());
         return session.send(payloadFlux.map(session::textMessage))
