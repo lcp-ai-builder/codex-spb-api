@@ -3,12 +3,8 @@ package com.lcp.spb.logic.services.impls;
 import com.lcp.spb.bean.EsUser;
 import com.lcp.spb.logic.services.ElasticsearchUserService;
 import com.lcp.spb.logic.services.BaseService;
-import co.elastic.clients.elasticsearch._types.Result;
-import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -57,19 +53,6 @@ public class ElasticsearchUserServiceImpl extends BaseService implements Elastic
             .filter(Objects::nonNull);
   }
 
-  /**
-   * 从 Elasticsearch 查询响应中提取命中结果
-   * 
-   * @param response 查询响应
-   * @return Flux 流式返回命中结果
-   */
-  private Flux<Hit<EsUser>> extractHits (
-          co.elastic.clients.elasticsearch.core.SearchResponse<EsUser> response) {
-    return Flux.fromIterable(
-            Optional.ofNullable(response.hits())
-                    .map(searchHits -> searchHits.hits())
-                    .orElseGet(java.util.List::of));
-  }
 
   /**
    * 根据 ID 查询用户
@@ -81,11 +64,7 @@ public class ElasticsearchUserServiceImpl extends BaseService implements Elastic
    */
   @Override
   public Mono<EsUser> findById (String id) {
-    return fromBlocking( () -> elasticsearchClient.get(
-        g -> g.index(INDEX).id(id), EsUser.class))
-            .flatMap(response -> response.found()
-                ? Mono.justOrEmpty(attachId(response.source(), response.id()))
-                : Mono.empty());
+    return findDocumentById(INDEX, id, EsUser.class, EsUser::setId);
   }
 
   /**
@@ -101,14 +80,7 @@ public class ElasticsearchUserServiceImpl extends BaseService implements Elastic
    */
   @Override
   public Mono<EsUser> save (EsUser user) {
-    return fromBlocking( () -> elasticsearchClient.index(builder -> {
-      builder.index(INDEX).document(user);
-      if (Objects.nonNull(user.getId())) {
-        builder.id(user.getId());
-      }
-      return builder;
-    }))
-        .map(response -> copyWithId(user, response.id()));
+    return saveDocument(INDEX, user, EsUser::getId, EsUser::setId);
   }
 
   /**
@@ -141,9 +113,7 @@ public class ElasticsearchUserServiceImpl extends BaseService implements Elastic
    */
   @Override
   public Mono<Boolean> delete (String id) {
-    return fromBlocking( () -> elasticsearchClient.delete(d -> d.index(INDEX).id(id)))
-        .map(DeleteResponse::result)
-        .map(result -> result == Result.Deleted);
+    return deleteDocumentById(INDEX, id);
   }
 
   /**
@@ -153,24 +123,7 @@ public class ElasticsearchUserServiceImpl extends BaseService implements Elastic
    * @return 包含ID的用户对象
    */
   private EsUser mapHit (Hit<EsUser> hit) {
-    return attachId(hit.source(), hit.id());
-  }
-
-  /**
-   * 将文档ID附加到用户对象
-   * 
-   * <p>如果用户对象不为空，则将文档ID设置到用户对象中。
-   * 
-   * @param user 用户对象，可能为 null
-   * @param id 文档ID
-   * @return 包含ID的用户对象，如果输入用户为 null 则返回 null
-   */
-  private EsUser attachId (EsUser user, String id) {
-    if (Objects.isNull(user)) {
-      return null;
-    }
-    user.setId(id);
-    return user;
+    return attachIdFromHit(hit, EsUser::getId, EsUser::setId);
   }
 
   /**

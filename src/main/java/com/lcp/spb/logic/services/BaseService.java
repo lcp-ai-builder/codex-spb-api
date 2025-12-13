@@ -1,11 +1,17 @@
 package com.lcp.spb.logic.services;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -60,5 +66,141 @@ public abstract class BaseService {
      */
     protected <T> Mono<T> fromBlocking (Callable<T> action) {
         return Mono.fromCallable(action).subscribeOn(Schedulers.boundedElastic());
+    }
+
+    /**
+     * 从 Elasticsearch 查询响应中提取命中结果
+     * 
+     * <p>通用的方法，用于从 SearchResponse 中提取 hits 列表并转换为 Flux 流。
+     * 如果响应中没有 hits 或 hits 为空，则返回空的 Flux。
+     * 
+     * @param <T> 文档类型
+     * @param response Elasticsearch 查询响应
+     * @return Flux 流式返回命中结果
+     */
+    protected <T> Flux<Hit<T>> extractHits (
+            co.elastic.clients.elasticsearch.core.SearchResponse<T> response) {
+        return Flux.fromIterable(
+                Optional.ofNullable(response.hits())
+                        .map(searchHits -> searchHits.hits())
+                        .orElseGet(List::of));
+    }
+
+    /**
+     * 通用的保存文档方法
+     * 
+     * <p>将文档保存到 Elasticsearch 索引中，支持自动ID生成和ID回填。
+     * 
+     * <p>使用方式：
+     * <pre>
+     * return saveDocument(INDEX, document, 
+     *     document::getId,           // 获取ID的方法
+     *     (doc, id) -> doc.setId(id)  // 设置ID的方法
+     * );
+     * </pre>
+     * 
+     * @param <T> 文档类型
+     * @param indexName 索引名称
+     * @param document 要保存的文档对象
+     * @param getIdFunc 从文档中获取ID的函数，如果返回null则自动生成ID
+     * @param setIdFunc 设置文档ID的函数，用于回填ES生成的ID
+     * @return Mono 包装的文档对象，包含保存后的ID
+     */
+    protected <T> Mono<T> saveDocument (
+            String indexName,
+            T document,
+            Function<T, String> getIdFunc,
+            BiConsumer<T, String> setIdFunc) {
+        return fromBlocking(() -> elasticsearchClient.index(builder -> {
+            builder.index(indexName).document(document);
+            String id = getIdFunc.apply(document);
+            if (id != null && !id.isEmpty()) {
+                builder.id(id);
+            }
+            return builder;
+        })).map(response -> {
+            setIdFunc.accept(document, response.id());
+            return document;
+        });
+    }
+
+    /**
+     * 通用的根据ID查询文档方法
+     * 
+     * <p>使用 Elasticsearch 的 get API 直接根据文档ID获取文档信息。
+     * 
+     * @param <T> 文档类型
+     * @param indexName 索引名称
+     * @param id 文档ID
+     * @param documentClass 文档类型
+     * @param setIdFunc 设置文档ID的函数，用于回填ES返回的ID
+     * @return Mono 包装的文档对象，如果文档不存在则返回空 Mono
+     */
+    protected <T> Mono<T> findDocumentById (
+            String indexName,
+            String id,
+            Class<T> documentClass,
+            BiConsumer<T, String> setIdFunc) {
+        return fromBlocking(() -> elasticsearchClient.get(
+                g -> g.index(indexName).id(id), documentClass))
+                .flatMap(response -> response.found()
+                        ? Mono.justOrEmpty(applyId(response.source(), response.id(), setIdFunc))
+                        : Mono.empty());
+    }
+
+    /**
+     * 通用的删除文档方法
+     * 
+     * <p>根据文档ID从 Elasticsearch 索引中删除文档。
+     * 
+     * @param indexName 索引名称
+     * @param id 文档ID
+     * @return Mono 包装的布尔值，true 表示删除成功，false 表示文档不存在
+     */
+    protected Mono<Boolean> deleteDocumentById (String indexName, String id) {
+        return fromBlocking(() -> elasticsearchClient.delete(d -> d.index(indexName).id(id)))
+                .map(response -> response.result() == co.elastic.clients.elasticsearch._types.Result.Deleted);
+    }
+
+    /**
+     * 应用ID到文档对象
+     * 
+     * @param <T> 文档类型
+     * @param document 文档对象，可能为 null
+     * @param id 文档ID
+     * @param setIdFunc 设置ID的函数
+     * @return 文档对象，如果输入为 null 则返回 null
+     */
+    private <T> T applyId (T document, String id, BiConsumer<T, String> setIdFunc) {
+        if (document != null) {
+            setIdFunc.accept(document, id);
+        }
+        return document;
+    }
+
+    /**
+     * 从 Elasticsearch Hit 中提取文档并附加ID
+     * 
+     * <p>通用的方法，用于从 Hit 对象中提取文档，并将文档ID设置到文档对象中。
+     * 如果文档对象中已有ID，则不会覆盖。
+     * 
+     * @param <T> 文档类型
+     * @param hit Elasticsearch 查询命中结果
+     * @param getIdFunc 从文档中获取ID的函数，用于判断是否已有ID
+     * @param setIdFunc 设置文档ID的函数
+     * @return 包含ID的文档对象，如果文档为 null 则返回 null
+     */
+    protected <T> T attachIdFromHit (
+            Hit<T> hit,
+            Function<T, String> getIdFunc,
+            BiConsumer<T, String> setIdFunc) {
+        T document = hit.source();
+        if (document != null) {
+            String existingId = getIdFunc.apply(document);
+            if (existingId == null || existingId.isEmpty()) {
+                setIdFunc.accept(document, hit.id());
+            }
+        }
+        return document;
     }
 }

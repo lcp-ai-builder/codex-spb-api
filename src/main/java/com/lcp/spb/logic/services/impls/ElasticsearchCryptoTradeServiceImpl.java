@@ -62,18 +62,9 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
      */
     @Override
     public Mono<CryptoTradeInfo> save (CryptoTradeInfo tradeInfo) {
-        return fromBlocking( () -> elasticsearchClient.index(builder -> {
-            // 写入索引，如果传入 tradeId 则使用作为文档 _id
-            builder.index(INDEX).document(tradeInfo);
-            if (Objects.nonNull(tradeInfo.getTradeId())) {
-                builder.id(tradeInfo.getTradeId());
-            }
-            return builder;
-        })).map(response -> {
-            // 将 ES 生成的 id 回填到对象，便于前端使用
-            tradeInfo.setTradeId(response.id());
-            return tradeInfo;
-        });
+        return saveDocument(INDEX, tradeInfo,
+                CryptoTradeInfo::getTradeId,
+                CryptoTradeInfo::setTradeId);
     }
 
     /**
@@ -192,19 +183,6 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
                 .collectList();
     }
 
-    /**
-     * 从 Elasticsearch 查询响应中提取命中结果
-     * 
-     * @param response 查询响应
-     * @return Flux 流式返回命中结果
-     */
-    private Flux<Hit<CryptoTradeInfo>> extractHits (
-            co.elastic.clients.elasticsearch.core.SearchResponse<CryptoTradeInfo> response) {
-        return Flux.fromIterable(
-                Optional.ofNullable(response.hits())
-                        .map(searchHits -> searchHits.hits())
-                        .orElseGet(java.util.List::of));
-    }
 
     /**
      * 获取最近一小时的交易汇总
@@ -359,11 +337,7 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
      * @return 包含 tradeId 的交易信息对象
      */
     private CryptoTradeInfo attachIdSafely (Hit<CryptoTradeInfo> hit) {
-        CryptoTradeInfo info = hit.source();
-        if (Objects.nonNull(info) && Objects.isNull(info.getTradeId())) {
-            info.setTradeId(hit.id());
-        }
-        return info;
+        return attachIdFromHit(hit, CryptoTradeInfo::getTradeId, CryptoTradeInfo::setTradeId);
     }
 
     /**
