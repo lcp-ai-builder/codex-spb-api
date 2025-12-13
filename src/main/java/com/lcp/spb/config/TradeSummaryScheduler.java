@@ -74,16 +74,19 @@ public class TradeSummaryScheduler {
     public void pushSummary () {
         long start = System.currentTimeMillis();
         cryptoTradeService.recentHourSummary()
-                .doOnError(error -> tradeSummarySink.tryEmitNext(
-                        new RecentHourTradeSummary(0, null, 0, 0, false)))
-                .subscribe(summary -> {
+                .doOnNext(summary -> {
                     tradeSummarySink.tryEmitNext(summary);
                     long cost = System.currentTimeMillis() - start;
                     logger.info("pushSummary executed in {} ms, window {}~{}", cost,
                             summary.getWindowStart(), summary.getWindowEnd());
-                }, error -> {
+                })
+                .doOnError(error -> {
                     long cost = System.currentTimeMillis() - start;
                     logger.warn("pushSummary failed in {} ms: {}", cost, error.getMessage());
-                });
+                    // 推送空汇总数据，确保系统稳定性
+                    tradeSummarySink.tryEmitNext(
+                            new RecentHourTradeSummary(0, null, 0, 0, false));
+                })
+                .subscribe(); // 触发执行
     }
 }

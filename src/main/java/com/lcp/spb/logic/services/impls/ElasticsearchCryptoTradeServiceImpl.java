@@ -4,6 +4,7 @@ import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import com.lcp.spb.bean.trade.CryptoTradeInfo;
@@ -75,42 +76,134 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
         });
     }
 
-    // 交易分页检索，支持多条件过滤
+    /**
+     * 交易分页检索，支持多条件过滤
+     * 
+     * <p>根据多个可选条件组合查询交易数据，支持分页返回。
+     * 查询过程包括：
+     * <ol>
+     *   <li>参数校验和标准化：确保分页参数有效，限制最大每页记录数</li>
+     *   <li>构建查询条件：根据传入的参数构建 Elasticsearch 查询</li>
+     *   <li>统计总数：先查询符合条件的总记录数</li>
+     *   <li>分页查询：根据分页参数查询具体记录</li>
+     *   <li>结果组装：将查询结果和分页信息组装成响应对象</li>
+     * </ol>
+     * 
+     * <p>查询条件说明：
+     * <ul>
+     *   <li>精确匹配：userId、symbol、side、orderType、status、exchange</li>
+     *   <li>模糊匹配：notesKeyword（对 notes 字段进行全文搜索）</li>
+     * </ul>
+     * 
+     * @param userId 用户ID，可选
+     * @param symbol 交易币种，可选
+     * @param side 交易方向，可选
+     * @param orderType 订单类型，可选
+     * @param status 订单状态，可选
+     * @param exchange 交易所名称，可选
+     * @param notesKeyword 备注关键词，可选，支持模糊匹配
+     * @param page 页码，从1开始，如果小于1则自动设置为1
+     * @param size 每页记录数，如果小于1则自动设置为1，最大不超过 MAX_PAGE_SIZE
+     * @return Mono 包装的查询响应对象，包含交易列表、总数和分页信息
+     */
     @Override
     public Mono<SearchTradesResponse> search (
             String userId, CryptoCurrency symbol, TradeSide side, OrderType orderType,
             OrderStatus status, String exchange, String notesKeyword, int page, int size) {
 
-        // 防御性分页参数，限制最大 size
-        int safePage = Math.max(page, 1);
-        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        int from = (safePage - 1) * safeSize;
-        // 构建 bool 过滤条件
+        // 标准化分页参数
+        PageParams pageParams = normalizePageParams(page, size);
+        // 构建查询条件
         Query filters = buildFilters(userId, symbol, side, orderType, status, exchange,
                 notesKeyword);
 
-        // 先统计总数（受 MAX_PAGE_SIZE 限制）
-        Mono<Long> totalMono = fromBlocking(
-                () -> elasticsearchClient.count(c -> c.index(INDEX).query(filters)).count())
-                        .map(count -> Math.min(count, (long) MAX_PAGE_SIZE));
+        // 并行执行总数统计和分页查询
+        Mono<Long> totalMono = countTotal(filters);
+        Mono<List<CryptoTradeInfo>> tradesMono = searchTrades(filters, pageParams);
 
-        Mono<SearchTradesResponse> tradesMono = fromBlocking(
+        // 合并结果
+        return Mono.zip(tradesMono, totalMono)
+                .map(tuple -> new SearchTradesResponse(
+                        tuple.getT1(),
+                        tuple.getT2(),
+                        pageParams.page,
+                        pageParams.size));
+    }
+
+    /**
+     * 标准化分页参数
+     * 
+     * @param page 页码
+     * @param size 每页记录数
+     * @return 标准化后的分页参数
+     */
+    private PageParams normalizePageParams (int page, int size) {
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        int from = (safePage - 1) * safeSize;
+        return new PageParams(safePage, safeSize, from);
+    }
+
+    /**
+     * 分页参数封装类
+     */
+    private static class PageParams {
+        final int page;
+        final int size;
+        final int from;
+
+        PageParams(int page, int size, int from) {
+            this.page = page;
+            this.size = size;
+            this.from = from;
+        }
+    }
+
+    /**
+     * 统计符合条件的总记录数
+     * 
+     * @param filters 查询条件
+     * @return Mono 包装的总记录数，受 MAX_PAGE_SIZE 限制
+     */
+    private Mono<Long> countTotal (Query filters) {
+        return fromBlocking(
+                () -> elasticsearchClient.count(c -> c.index(INDEX).query(filters)).count())
+                .map(count -> Math.min(count, (long) MAX_PAGE_SIZE));
+    }
+
+    /**
+     * 分页查询交易数据
+     * 
+     * @param filters 查询条件
+     * @param pageParams 分页参数
+     * @return Mono 包装的交易列表
+     */
+    private Mono<List<CryptoTradeInfo>> searchTrades (Query filters, PageParams pageParams) {
+        return fromBlocking(
                 () -> elasticsearchClient.search(searchRequest -> {
-                    // ES from/size 分页查询
-                    searchRequest.index(INDEX).from(from).size(safeSize);
-                    searchRequest.query(filters);
+                    searchRequest.index(INDEX)
+                            .from(pageParams.from)
+                            .size(pageParams.size)
+                            .query(filters);
                     return searchRequest;
                 }, CryptoTradeInfo.class))
-                        .flatMapMany(response -> Flux.fromIterable(
-                                Optional.ofNullable(response.hits())
-                                        .map(searchHits -> searchHits.hits())
-                                        .orElseGet(java.util.List::of)))
-                        .map(this::attachIdSafely)
-                        .collectList()
-                        .zipWith(totalMono, (trades, total) -> new SearchTradesResponse(trades,
-                                total, safePage, safeSize));
+                .flatMapMany(this::extractHits)
+                .map(this::attachIdSafely)
+                .collectList();
+    }
 
-        return tradesMono;
+    /**
+     * 从 Elasticsearch 查询响应中提取命中结果
+     * 
+     * @param response 查询响应
+     * @return Flux 流式返回命中结果
+     */
+    private Flux<Hit<CryptoTradeInfo>> extractHits (
+            co.elastic.clients.elasticsearch.core.SearchResponse<CryptoTradeInfo> response) {
+        return Flux.fromIterable(
+                Optional.ofNullable(response.hits())
+                        .map(searchHits -> searchHits.hits())
+                        .orElseGet(java.util.List::of));
     }
 
     /**
@@ -141,11 +234,7 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
 
         return aggregateWindow(windowStart, now, false)
                 .flatMap(summary -> {
-                    // 判断当前一小时是否有数据（交易笔数大于0或总金额大于0）
-                    boolean hasData = summary.getCount() > 0 ||
-                            (Objects.nonNull(summary.getTotalAmount())
-                                    && summary.getTotalAmount().compareTo(BigDecimal.ZERO) > 0);
-                    if (hasData) {
+                    if (hasData(summary)) {
                         // 有数据则直接返回
                         return Mono.just(summary);
                     }
@@ -157,9 +246,8 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
                                     return Mono.just(summary);
                                 }
                                 // 以最新交易时间为结束点，往前推一小时作为回退窗口
-                                long fallbackEnd = latest;
-                                long fallbackStart = Math.max(0, fallbackEnd - ONE_HOUR_MILLIS);
-                                return aggregateWindow(fallbackStart, fallbackEnd, true);
+                                long fallbackStart = Math.max(0, latest - ONE_HOUR_MILLIS);
+                                return aggregateWindow(fallbackStart, latest, true);
                             });
                 });
     }
@@ -247,6 +335,21 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
     }
 
     /**
+     * 判断汇总数据是否有效（有数据）
+     * 
+     * <p>判断汇总数据是否包含有效的交易数据：
+     * 交易笔数大于0或总金额大于0。
+     * 
+     * @param summary 交易汇总对象
+     * @return true 表示有数据，false 表示无数据
+     */
+    private boolean hasData (RecentHourTradeSummary summary) {
+        return summary.getCount() > 0 ||
+                (Objects.nonNull(summary.getTotalAmount())
+                        && summary.getTotalAmount().compareTo(BigDecimal.ZERO) > 0);
+    }
+
+    /**
      * 安全地附加文档ID到交易信息对象
      * 
      * <p>从 Elasticsearch 查询结果中提取文档ID，如果交易对象中没有 tradeId，
@@ -297,20 +400,8 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
             return searchRequest;
         }, CryptoTradeInfo.class))
                 .map(response -> {
-                    // 安全获取 total hits
-                    long totalHits = Optional.ofNullable(response.hits())
-                            .map(h -> h.total())
-                            .map(t -> t.value())
-                            .orElse(0L);
-
-                    // 安全获取 sum 聚合值，缺失时默认为 0
-                    BigDecimal totalAmount = Optional.ofNullable(response.aggregations())
-                            .map(aggs -> aggs.get(TOTAL_AMOUNT_AGG))
-                            .map(a -> a.sum())
-                            .map(sum -> Optional.ofNullable(sum.value())
-                                    .map(value -> BigDecimal.valueOf(value))
-                                    .orElse(BigDecimal.ZERO))
-                            .orElse(BigDecimal.ZERO);
+                    long totalHits = extractTotalHits(response);
+                    BigDecimal totalAmount = extractTotalAmount(response);
                     return new RecentHourTradeSummary(totalHits, totalAmount, windowStart,
                             windowEnd, fallback);
                 })
@@ -322,6 +413,37 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
                     return Mono.just(new RecentHourTradeSummary(0L, BigDecimal.ZERO, windowStart,
                             windowEnd, fallback));
                 });
+    }
+
+    /**
+     * 从聚合响应中提取总命中数
+     * 
+     * @param response 查询响应
+     * @return 总命中数，如果无法获取则返回 0
+     */
+    private long extractTotalHits (
+            co.elastic.clients.elasticsearch.core.SearchResponse<CryptoTradeInfo> response) {
+        return Optional.ofNullable(response.hits())
+                .map(h -> h.total())
+                .map(t -> t.value())
+                .orElse(0L);
+    }
+
+    /**
+     * 从聚合响应中提取总金额
+     * 
+     * @param response 查询响应
+     * @return 总金额，如果无法获取则返回 0
+     */
+    private BigDecimal extractTotalAmount (
+            co.elastic.clients.elasticsearch.core.SearchResponse<CryptoTradeInfo> response) {
+        return Optional.ofNullable(response.aggregations())
+                .map(aggs -> aggs.get(TOTAL_AMOUNT_AGG))
+                .map(a -> a.sum())
+                .map(sum -> Optional.ofNullable(sum.value())
+                        .map(BigDecimal::valueOf)
+                        .orElse(BigDecimal.ZERO))
+                .orElse(BigDecimal.ZERO);
     }
 
     /**
@@ -341,22 +463,18 @@ public class ElasticsearchCryptoTradeServiceImpl extends BaseService
      */
     private Mono<Long> findLatestExecutedAt () {
         return fromBlocking( () -> elasticsearchClient.search(searchRequest -> {
-            // 按 executedAt 倒序取一条
-            searchRequest.index(INDEX);
-            searchRequest.size(1);
-            searchRequest.sort(sort -> sort.field(fieldSort -> fieldSort.field("executedAt")
-                    .order(SortOrder.Desc)));
+            searchRequest.index(INDEX)
+                    .size(1)
+                    .sort(sort -> sort.field(fieldSort -> fieldSort.field("executedAt")
+                            .order(SortOrder.Desc)));
             return searchRequest;
         }, CryptoTradeInfo.class))
-                .map(response -> Optional.ofNullable(response.hits())
-                        .map(hits -> hits.hits())
-                        .map(list -> list.stream()
-                                .map(Hit::source)
-                                .filter(Objects::nonNull)
-                                .map(CryptoTradeInfo::getExecutedAt)
-                                .filter(Objects::nonNull)
-                                .findFirst()
-                                .orElse(null))
-                        .orElse(null));
+                .flatMapMany(this::extractHits)
+                .map(Hit::source)
+                .filter(Objects::nonNull)
+                .map(CryptoTradeInfo::getExecutedAt)
+                .filter(Objects::nonNull)
+                .next() // 获取第一个元素，如果没有则返回空 Mono
+                .cast(Long.class);
     }
 }

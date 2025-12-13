@@ -6,6 +6,7 @@ import com.lcp.spb.logic.services.BaseService;
 import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -48,14 +49,26 @@ public class ElasticsearchUserServiceImpl extends BaseService implements Elastic
   @Override
   public Flux<EsUser> findAll () {
     return fromBlocking( () -> elasticsearchClient.search(
-        searchRequest -> searchRequest.index(INDEX).query(queryBuilder -> queryBuilder.matchAll(matchAll -> matchAll)),
+        searchRequest -> searchRequest.index(INDEX)
+                .query(queryBuilder -> queryBuilder.matchAll(matchAll -> matchAll)),
         EsUser.class))
-            .flatMapMany(searchResponse -> Flux.fromIterable(
-                Optional.ofNullable(searchResponse.hits())
-                    .map(searchHits -> searchHits.hits())
-                    .orElseGet(java.util.List::of)))
+            .flatMapMany(this::extractHits)
             .map(this::mapHit)
             .filter(Objects::nonNull);
+  }
+
+  /**
+   * 从 Elasticsearch 查询响应中提取命中结果
+   * 
+   * @param response 查询响应
+   * @return Flux 流式返回命中结果
+   */
+  private Flux<Hit<EsUser>> extractHits (
+          co.elastic.clients.elasticsearch.core.SearchResponse<EsUser> response) {
+    return Flux.fromIterable(
+            Optional.ofNullable(response.hits())
+                    .map(searchHits -> searchHits.hits())
+                    .orElseGet(java.util.List::of));
   }
 
   /**
