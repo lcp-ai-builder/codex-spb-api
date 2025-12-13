@@ -18,7 +18,6 @@ import com.lcp.spb.logic.services.BaseService;
 import com.lcp.spb.logic.services.ElasticsearchCryptoTradeService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
