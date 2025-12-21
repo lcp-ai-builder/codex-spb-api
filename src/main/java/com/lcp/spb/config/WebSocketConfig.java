@@ -13,9 +13,9 @@ import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAd
 public class WebSocketConfig {
 
     @Bean
-    public HandlerMapping webSocketMapping (TradeSummaryWebSocketHandler handler) {
+    HandlerMapping webSocketMapping (TradeSummaryWebSocketHandler tradeSummaryWebSocketHandler) {
         Map<String, WebSocketHandler> map = new HashMap<>();
-        map.put("/ws/trade-summary", handler);
+        map.put("/ws/trade-summary", tradeSummaryWebSocketHandler);
 
         SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
         mapping.setUrlMap(map);
@@ -24,7 +24,7 @@ public class WebSocketConfig {
     }
 
     @Bean
-    public WebSocketHandlerAdapter handlerAdapter () {
+    WebSocketHandlerAdapter handlerAdapter () {
         return new WebSocketHandlerAdapter();
     }
 }
